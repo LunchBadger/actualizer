@@ -1,0 +1,32 @@
+{
+  "name": "actualizer",
+  "version": "0.0.1",
+  "description": "Watches configuration repositories and ensures that deployments match configuration",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel -d dist/server index.js",
+    "dev": "babel-node .",
+    "start": "node dist/server/index.js",
+    "pretest": "eslint .",
+    "test": "babel -d dist/tests tests && mocha dist/tests"
+  },
+  "author": "Roman Lisagor <roman@lunchbadger.com>",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "babel-cli": "^6.10.1",
+    "babel-core": "^6.10.4",
+    "babel-eslint": "^6.1.0",
+    "babel-plugin-transform-async-to-generator": "^6.8.0",
+    "chai": "^3.5.0",
+    "clarify": "^2.0.0",
+    "eslint": "^2.13.1",
+    "eslint-config-loopback": "^4.0.0",
+    "mocha": "^2.5.3",
+    "trace": "^2.3.2"
+  },
+  "dependencies": {
+    "cisco-kube-client": "^1.2.0",
+    "deep-get-set": "^1.0.0",
+    "request-promise": "^3.0.0"
+  }
+}
