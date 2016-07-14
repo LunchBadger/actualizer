@@ -4,11 +4,11 @@
   "description": "Watches configuration repositories and ensures that deployments match configuration",
   "main": "index.js",
   "scripts": {
-    "build": "babel -d dist/server index.js",
+    "build": "rm -rf dist && babel -d dist --ignore node_modules .",
     "dev": "babel-node .",
     "start": "node dist/server/index.js",
     "pretest": "eslint .",
-    "test": "babel -d dist/tests tests && mocha dist/tests"
+    "test": "npm run build && mocha dist/tests"
   },
   "author": "Roman Lisagor <roman@lunchbadger.com>",
   "license": "UNLICENSED",
@@ -22,10 +22,12 @@
     "eslint": "^2.13.1",
     "eslint-config-loopback": "^4.0.0",
     "mocha": "^2.5.3",
+    "sinon": "^1.17.4",
     "trace": "^2.3.2"
   },
   "dependencies": {
     "cisco-kube-client": "^1.2.0",
+    "debug": "^2.2.0",
     "deep-get-set": "^1.0.0",
     "request-promise": "^3.0.0"
   }
