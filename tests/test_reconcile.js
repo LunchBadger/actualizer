@@ -2,13 +2,27 @@
 
 const assert = require('assert');
 const sinon = require('sinon');
+
 const ConfigStoreClient = require('../lib/csclient');
 const Deployer = require('../lib/kube').Deployer;
+const GatewayDeployment = require('../lib/deployments/gateway');
 const reconcileRepos = require('../lib/main').reconcileRepos;
 
 describe('Reconciler', function() {
   let configStore = undefined;
   let deployer = undefined;
+
+  const fakeConfig = JSON.stringify({
+    gateways: [{
+      id: '1234'
+    }],
+  });
+  const fakeLocator = {
+    producer: 'test-repo',
+    environment: 'branch1',
+    app: 'gateway',
+    instance: '1234'
+  };
 
   beforeEach(function()  {
     configStore = sinon.createStubInstance(ConfigStoreClient);
@@ -29,11 +43,10 @@ describe('Reconciler', function() {
       }
     }]);
     deployer.getConfigRev.returns('rev0');
-    configStore.getFile.returns('{"some": "configuration"}');
+    configStore.getFile.returns(fakeConfig);
 
     await reconcileRepos(configStore, deployer);
-
-    assert(deployer.setConfig.calledTwice);
+    assert(deployer.updateDeployment.calledTwice);
   });
 
   it('does not affect branches that do not start with "env/"',
@@ -47,7 +60,7 @@ describe('Reconciler', function() {
       }]);
 
       await reconcileRepos(configStore, deployer);
-      assert(!deployer.setConfig.called);
+      assert(!deployer.updateDeployment.called);
     });
 
   it('sets configuration when revision does not match', async function() {
@@ -58,13 +71,11 @@ describe('Reconciler', function() {
       }
     }]);
     deployer.getConfigRev.returns('rev0');
-    configStore.getFile.returns('{"some": "configuration"}');
+    configStore.getFile.returns(fakeConfig);
 
     await reconcileRepos(configStore, deployer);
-
-    assert(deployer.setConfig.calledWith(
-      {producer: 'test-repo', environment: 'branch1', app: 'gateway'},
-      '{"some": "configuration"}', 'rev1', false));
+    assert(deployer.updateDeployment.calledWith(
+      fakeLocator, sinon.match.instanceOf(GatewayDeployment), 'rev1', false));
   });
 
   it('creates a deployment when the revision is null', async function() {
@@ -75,13 +86,12 @@ describe('Reconciler', function() {
       }
     }]);
     deployer.getConfigRev.returns(null);
-    configStore.getFile.returns('{"some": "configuration"}');
+    configStore.getFile.returns(fakeConfig);
 
     await reconcileRepos(configStore, deployer);
 
-    assert(deployer.setConfig.calledWith(
-      {producer: 'test-repo', environment: 'branch1', app: 'gateway'},
-      '{"some": "configuration"}', 'rev1', true));
+    assert(deployer.updateDeployment.calledWith(
+      fakeLocator, sinon.match.instanceOf(GatewayDeployment), 'rev1', true));
   });
 
   it('does nothing if the revision matches', async function() {
@@ -92,9 +102,10 @@ describe('Reconciler', function() {
       }
     }]);
     deployer.getConfigRev.returns('rev1');
+    configStore.getFile.returns(fakeConfig);
 
     await reconcileRepos(configStore, deployer);
 
-    assert(!deployer.setConfig.called);
+    assert(!deployer.updateDeployment.called);
   });
 });

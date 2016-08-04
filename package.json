@@ -8,7 +8,7 @@
     "dev": "babel-node .",
     "start": "node dist/server/index.js",
     "pretest": "eslint .",
-    "test": "npm run build && mocha dist/tests"
+    "test": "mocha --compilers js:babel-register tests"
   },
   "author": "Roman Lisagor <roman@lunchbadger.com>",
   "license": "UNLICENSED",

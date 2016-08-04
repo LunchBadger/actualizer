@@ -1,13 +1,15 @@
+/* eslint-disable max-len */
 'use strict';
 
-let Deployer = require('../lib/kube').Deployer;
-let nock = require('nock');
 let chai = require('chai');
 let chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 let assert = chai.assert;
+let nock = require('nock');
+
 let CommsError = require('../lib/errors').CommsError;
 let ConsistencyError = require('../lib/errors').ConsistencyError;
+let Deployer = require('../lib/kube').Deployer;
 
 describe('Kubernetes client', function() {
   let client = new Deployer();
@@ -16,7 +18,35 @@ describe('Kubernetes client', function() {
     nock.cleanAll();
   });
 
-  describe('setConfig()', function() {
+  describe('updateDeployment()', function() {
+    let fakeDeployment = {
+      getDeploymentJson: function() {
+        return {
+          apiVersion: 'extensions/v1beta1',
+          kind: 'Deployment',
+          metadata: {
+            name: 'fake-deployment',
+            namespace: 'customer'
+          },
+          spec: {
+            replicas: 1,
+            template: {
+              spec: {
+                containers: [{
+                  name: 'FakeApp',
+                  image: 'fake-image:latest',
+                  ports: [{containerPort: 3000}]
+                }],
+              }
+            }
+          }
+        };
+      },
+      getConfigMapJson: function() {
+        return 'new configuration';
+      }
+    };
+
     it('for new deployments, creates a new ConfigMap and Deployment',
       async function() {
         let createConfigApi = nock('http://localhost:8001')
@@ -26,11 +56,11 @@ describe('Kubernetes client', function() {
           .post('/apis/extensions/v1beta1/namespaces/customer/deployments')
           .reply(200, {});
 
-        await client.setConfig({
+        await client.updateDeployment({
           app: 'gateway',
           producer: 'foo',
           environment: 'bar'
-        }, 'new configuration', 'rev0', true);
+        }, fakeDeployment, 'rev0', true);
 
         assert(createConfigApi.isDone());
         assert(createDeploymentApi.isDone());
@@ -44,14 +74,14 @@ describe('Kubernetes client', function() {
           .reply(200, {});
         let updateDeploymentApi = nock('http://localhost:8001')
           .put('/apis/extensions/v1beta1/namespaces/customer/deployments/' +
-               'gateway-foo-bar')
+               'fake-deployment')
           .reply(200, {});
 
-        await client.setConfig({
+        await client.updateDeployment({
           app: 'gateway',
           producer: 'foo',
           environment: 'bar'
-        }, 'new configuration', 'rev0', false);
+        }, fakeDeployment, 'rev0', false);
 
         assert(createConfigApi.isDone());
         assert(updateDeploymentApi.isDone());
