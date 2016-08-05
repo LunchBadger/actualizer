@@ -7,9 +7,8 @@ chai.use(chaiAsPromised);
 let assert = chai.assert;
 let nock = require('nock');
 
-let CommsError = require('../lib/errors').CommsError;
-let ConsistencyError = require('../lib/errors').ConsistencyError;
 let Deployer = require('../lib/kube').Deployer;
+let configMapJson = require('../lib/kube').configMapJson;
 
 describe('Kubernetes client', function() {
   let client = new Deployer();
@@ -18,15 +17,16 @@ describe('Kubernetes client', function() {
     nock.cleanAll();
   });
 
-  describe('updateDeployment()', function() {
+  describe('upsertDeployment()', function() {
     let fakeDeployment = {
-      getDeploymentJson: function() {
+      getDeploymentJson: function(locator, configMapName) {
         return {
           apiVersion: 'extensions/v1beta1',
           kind: 'Deployment',
           metadata: {
             name: 'fake-deployment',
-            namespace: 'customer'
+            namespace: 'customer',
+            labels: locator
           },
           spec: {
             replicas: 1,
@@ -39,7 +39,11 @@ describe('Kubernetes client', function() {
                 }],
               }
             }
-          }
+          },
+          volumes: [{
+            name: 'config',
+            configMap: {name: configMapName}
+          }]
         };
       },
       getConfigMapJson: function() {
@@ -49,6 +53,23 @@ describe('Kubernetes client', function() {
 
     it('for new deployments, creates a new ConfigMap and Deployment',
       async function() {
+        nock('http://localhost:8001')
+          .get('/api/v1/namespaces/customer/configmaps')
+          .query(true)
+          .reply(200, {
+            kind: 'ConfigMapList',
+            apiVersion: 'v1',
+            items: []
+          });
+        nock('http://localhost:8001')
+          .get('/apis/extensions/v1beta1/namespaces/customer/deployments')
+          .query(true)
+          .reply(200, {
+            kind: 'DeploymentList',
+            apiVersion: 'extensions/v1beta1',
+            items: []
+          });
+
         let createConfigApi = nock('http://localhost:8001')
           .post('/api/v1/namespaces/customer/configmaps')
           .reply(200, {});
@@ -56,7 +77,7 @@ describe('Kubernetes client', function() {
           .post('/apis/extensions/v1beta1/namespaces/customer/deployments')
           .reply(200, {});
 
-        await client.updateDeployment({
+        await client.upsertDeployment({
           app: 'gateway',
           producer: 'foo',
           environment: 'bar'
@@ -67,176 +88,43 @@ describe('Kubernetes client', function() {
       });
 
     it('for existing deployments, creates a new ConfigMap ' +
-       'and updates a Deployment',
-      async function() {
-        let createConfigApi = nock('http://localhost:8001')
-          .post('/api/v1/namespaces/customer/configmaps')
-          .reply(200, {});
-        let updateDeploymentApi = nock('http://localhost:8001')
-          .put('/apis/extensions/v1beta1/namespaces/customer/deployments/' +
-               'fake-deployment')
-          .reply(200, {});
+       'and updates the Deployment', async function() {
+      let locator = {
+        app: 'gateway',
+        producer: 'foo',
+        environment: 'bar'
+      };
 
-        await client.updateDeployment({
-          app: 'gateway',
-          producer: 'foo',
-          environment: 'bar'
-        }, fakeDeployment, 'rev0', false);
-
-        assert(createConfigApi.isDone());
-        assert(updateDeploymentApi.isDone());
-      });
-  });
-
-  describe('getConfigRev()', function() {
-    it('raises CommsError on malformed response from Kube', async function() {
+      nock('http://localhost:8001')
+        .get('/api/v1/namespaces/customer/configmaps')
+        .query(true)
+        .reply(200, {
+          kind: 'ConfigMapList',
+          apiVersion: 'v1',
+          items: [configMapJson(locator, '123',
+                                fakeDeployment.getDeploymentJson())]
+        });
       nock('http://localhost:8001')
         .get('/apis/extensions/v1beta1/namespaces/customer/deployments')
         .query(true)
-        .reply(200, 'not even json');
-      await assert.isRejected(client.getConfigRev({
-        app: 'gateway',
-        producer: 'foo',
-        environment: 'bar'
-      }), CommsError);
+        .reply(200, {
+          kind: 'DeploymentList',
+          apiVersion: 'extensions/v1beta1',
+          items: [fakeDeployment.getDeploymentJson()]
+        });
 
-      nock.cleanAll();
+      let createConfigApi = nock('http://localhost:8001')
+        .post('/api/v1/namespaces/customer/configmaps')
+        .reply(200, {});
+      let updateDeploymentApi = nock('http://localhost:8001')
+        .put('/apis/extensions/v1beta1/namespaces/customer/deployments/' +
+             'fake-deployment')
+        .reply(200, {});
 
-      nock('http://localhost:8001')
-        .get('/apis/extensions/v1beta1/namespaces/customer/deployments')
-        .query(true)
-        .reply(200, '{"bad": "response"}');
-      await assert.isRejected(client.getConfigRev({
-        app: 'gateway',
-        producer: 'foo',
-        environment: 'bar'
-      }), CommsError);
-    });
+      await client.upsertDeployment(locator, fakeDeployment, 'rev0', false);
 
-    it('raises CommsError if Kube cannot be reached', async function() {
-      // No nock here
-      await assert.isRejected(client.getConfigRev({
-        app: 'gateway',
-        producer: 'foo',
-        environment: 'bar'
-      }), CommsError);
-    });
-
-    it('raises ConsistencyError on too many matching deployments',
-      async function() {
-        nock('http://localhost:8001')
-          .get('/apis/extensions/v1beta1/namespaces/customer/deployments')
-          .query(true)
-          .reply(200, `
-            {
-              "kind": "DeploymentList",
-              "apiVersion": "extensions/v1beta1",
-              "metadata": {
-                "selfLink": "/apis/extensions/v1beta1/namespaces/customer/deployments",
-                "resourceVersion": "123"
-              },
-              "items": [{
-                "metadata": {},
-                "spec": {},
-                "strategy": {}
-              }, {
-                "metadata": {},
-                "spec": {},
-                "strategy": {}
-              }]
-            }`);
-        await assert.isRejected(client.getConfigRev({
-          app: 'gateway',
-          producer: 'foo',
-          environment: 'bar'
-        }), ConsistencyError);
-      });
-
-    it('raises ConsistencyError if Deployment has no ConfigMap',
-      async function() {
-        nock('http://localhost:8001')
-          .get('/apis/extensions/v1beta1/namespaces/customer/deployments')
-          .query(true)
-          .reply(200, `
-            {
-              "kind": "DeploymentList",
-              "apiVersion": "extensions/v1beta1",
-              "metadata": {
-                "selfLink": "/apis/extensions/v1beta1/namespaces/customer/deployments",
-                "resourceVersion": "123"
-              },
-              "items": [{
-                "metadata": {
-                  "labels": {
-                    "app": "gateway",
-                    "producer": "foo",
-                    "environment": "bar"
-                  }
-                },
-                "spec": {
-                  "template": {
-                    "spec": {
-                      "volumes": [],
-                      "containers": []
-                    }
-                  }
-                },
-                "strategy": {}
-              }]
-            }`);
-        await assert.isRejected(client.getConfigRev({
-          app: 'gateway',
-          producer: 'foo',
-          environment: 'bar'
-        }), ConsistencyError);
-      });
-
-    it('raises ConsistencyError if ConfigMap does not exist', async function() {
-      nock('http://localhost:8001')
-        .get('/apis/extensions/v1beta1/namespaces/customer/deployments')
-        .query(true)
-        .reply(200, `
-          {
-            "kind": "DeploymentList",
-            "apiVersion": "extensions/v1beta1",
-            "metadata": {
-              "selfLink": "/apis/extensions/v1beta1/namespaces/customer/deployments",
-              "resourceVersion": "123"
-            },
-            "items": [{
-              "metadata": {
-                "labels": {
-                  "app": "gateway",
-                  "producer": "foo",
-                  "environment": "bar"
-                }
-              },
-              "spec": {
-                "template": {
-                  "spec": {
-                    "volumes": [{
-                      "name": "config",
-                      "configMap": {
-                        "name": "test-config-map"
-                      }
-                    }],
-                    "containers": []
-                  }
-                }
-              },
-              "strategy": {}
-            }]
-          }`);
-      nock('http://localhost:8001')
-        .get('/api/v1/namespaces/customer/configmaps/test-config-map')
-        .query(true)
-        .reply(404, 'Not Found');
-
-      await assert.isRejected(client.getConfigRev({
-        app: 'gateway',
-        producer: 'foo',
-        environment: 'bar'
-      }), ConsistencyError);
+      assert.isTrue(createConfigApi.isDone(), 'ConfigMap not created');
+      assert.isTrue(updateDeploymentApi.isDone(), 'Deployment not updated');
     });
   });
 });
