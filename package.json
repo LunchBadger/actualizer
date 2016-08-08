@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "rm -rf dist && babel -d dist --ignore node_modules,dist .",
-    "dev": "babel-node .",
+    "dev": "DEBUG=actualizer:* babel-node .",
     "start": "node dist/server/index.js",
     "pretest": "eslint .",
     "test": "mocha --compilers js:babel-register tests"
@@ -28,6 +28,7 @@
     "trace": "^2.3.2"
   },
   "dependencies": {
+    "base32": "0.0.6",
     "cisco-kube-client": "^1.2.0",
     "debug": "^2.2.0",
     "deep-get-set": "^1.0.0",
