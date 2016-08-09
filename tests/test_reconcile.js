@@ -38,7 +38,7 @@ describe('Reconciler', function() {
     configStore.getFile.returns(fakeConfig);
 
     await reconcileRepos(configStore, deployer);
-    assert(deployer.upsertDeployment.calledTwice);
+    assert(deployer.updateEnvironment.calledTwice);
   });
 
   it('does not affect branches that do not start with "env/"',
@@ -52,6 +52,6 @@ describe('Reconciler', function() {
       }]);
 
       await reconcileRepos(configStore, deployer);
-      assert(!deployer.upsertDeployment.called);
+      assert(!deployer.updateEnvironment.called);
     });
 });

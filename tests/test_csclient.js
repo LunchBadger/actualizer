@@ -1,8 +1,10 @@
 'use strict';
 
-let ConfigStoreClient = require('../lib/csclient');
 let nock = require('nock');
 let assert = require('chai').assert;
+
+let ConfigStoreClient = require('../lib/csclient');
+let CommsError = require('../lib/errors').CommsError;
 
 describe('ConfigStore client', function() {
   let client = new ConfigStoreClient('http://localhost:1234/api');
@@ -29,10 +31,9 @@ describe('ConfigStore client', function() {
     assert(reposApi.isDone());
   });
 
-  it('returns empty list when server cannot be reached', async function() {
+  it('throws error when server cannot be reached', async function() {
     // No nock here.
-    let response = await client.getAllRepos();
-    assert.deepEqual(response, []);
+    assert.isRejected(client.getAllRepos(), CommsError);
   });
 
   it('returns empty list when receiving an error', async function() {

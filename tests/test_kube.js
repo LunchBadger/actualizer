@@ -46,8 +46,16 @@ describe('Kubernetes client', function() {
           }]
         };
       },
-      getConfigMapJson: function() {
-        return 'new configuration';
+      getConfigFiles: function() {
+        return {
+          'cofig.json': 'new configuration'
+        };
+      },
+      getServicePorts: function() {
+        return [];
+      },
+      getContainerSpec: function() {
+        return {};
       }
     };
 
@@ -92,7 +100,8 @@ describe('Kubernetes client', function() {
       let locator = {
         app: 'gateway',
         producer: 'foo',
-        environment: 'bar'
+        environment: 'bar',
+        instance: '2ead01e2-b690-4a33-9c70-c56e6c365924'
       };
 
       nock('http://localhost:8001')
@@ -118,7 +127,7 @@ describe('Kubernetes client', function() {
         .reply(200, {});
       let updateDeploymentApi = nock('http://localhost:8001')
         .put('/apis/extensions/v1beta1/namespaces/customer/deployments/' +
-             'fake-deployment')
+             'gateway-foo-bar-2ead01e2-b690-4a33-9c70-c56e6c365924')
         .reply(200, {});
 
       await client.upsertDeployment(locator, fakeDeployment, 'rev0', false);
