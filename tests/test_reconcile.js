@@ -5,7 +5,7 @@ const sinon = require('sinon');
 
 const ConfigStoreClient = require('../lib/csclient');
 const Deployer = require('../lib/kube').Deployer;
-const reconcileRepos = require('../lib/main').reconcileRepos;
+const reconcileProducers = require('../lib/main').reconcileProducers;
 
 describe('Reconciler', function() {
   let configStore = undefined;
@@ -27,31 +27,17 @@ describe('Reconciler', function() {
     deployer = undefined;
   });
 
-  it('reconciles each branch that starts with "env/"', async function() {
-    configStore.getAllRepos.returns([{
-      id: 'test-repo',
-      branches: {
-        'env/branch1': 'rev1',
-        'env/branch2': 'rev2'
+  it('reconciles each environment', async function() {
+    configStore.getAllProducers.returns([{
+      id: 'test-producer',
+      envs: {
+        'branch1': 'rev1',
+        'branch2': 'rev2'
       }
     }]);
     configStore.getFile.returns(fakeConfig);
 
-    await reconcileRepos(configStore, deployer);
+    await reconcileProducers(configStore, deployer);
     assert(deployer.updateEnvironment.calledTwice);
   });
-
-  it('does not affect branches that do not start with "env/"',
-    async function() {
-      configStore.getAllRepos.returns([{
-        id: 'test-repo',
-        branches: {
-          'branch1': 'rev1',
-          'foo/branch2': 'rev2'
-        }
-      }]);
-
-      await reconcileRepos(configStore, deployer);
-      assert(!deployer.updateEnvironment.called);
-    });
 });
