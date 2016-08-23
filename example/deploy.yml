@@ -1,0 +1,22 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: actualizer
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        run: actualizer
+    spec:
+      containers:
+        - name: actualizer
+          image: localhost:31000/actualizer:0.0.1
+          imagePullPolicy: Always
+          env:
+            - name: DEBUG
+              value: actualizer:*
+            - name: CONFIGSTORE_URL
+              value: "http://configstore.default:3001/api"
