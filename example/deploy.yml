@@ -20,3 +20,7 @@ spec:
               value: actualizer:*
             - name: CONFIGSTORE_URL
               value: "http://configstore.default:3001/api"
+        - name: kubectl-proxy
+          image: localhost:31000/kubectl:1.3.4
+          imagePullPolicy: Always
+          args: [proxy, --port, "8001", --logtostderr]

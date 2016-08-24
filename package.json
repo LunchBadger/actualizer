@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "base32": "0.0.6",
-    "cisco-kube-client": "^1.2.0",
+    "cisco-kube-client": "LunchBadger/cisco-kube-client",
     "debug": "^2.2.0",
     "deep-get-set": "^1.0.0",
     "request-promise": "^3.0.0"
