@@ -1,11 +1,9 @@
-'use strict';
+import assert from 'assert';
+import sinon from 'sinon';
 
-const assert = require('assert');
-const sinon = require('sinon');
-
-const ConfigStoreClient = require('../lib/csclient');
-const Deployer = require('../lib/kube').Deployer;
-const reconcileProducers = require('../lib/main').reconcileProducers;
+import ConfigStoreClient from '../lib/csclient';
+import {Deployer} from '../lib/kube';
+import {reconcileProducers} from '../lib/main';
 
 describe('Reconciler', function() {
   let configStore = undefined;

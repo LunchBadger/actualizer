@@ -1,14 +1,11 @@
 /* eslint-disable max-len */
-'use strict';
-
-let chai = require('chai');
-let chaiAsPromised = require('chai-as-promised');
+import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 chai.use(chaiAsPromised);
-let assert = chai.assert;
-let nock = require('nock');
+const assert = chai.assert;
 
-let Deployer = require('../lib/kube').Deployer;
-let configMapJson = require('../lib/kube').configMapJson;
+import nock from 'nock';
+import {Deployer, configMapJson} from '../lib/kube';
 
 describe('Kubernetes client', function() {
   let client = new Deployer();
@@ -56,6 +53,9 @@ describe('Kubernetes client', function() {
       },
       getContainerSpec: function() {
         return {};
+      },
+      getVHost: function() {
+        return 'fake-deployment.customer.lunchbadger.com';
       }
     };
 

@@ -1,10 +1,8 @@
-'use strict';
+import nock from 'nock';
+import {assert} from 'chai';
 
-let nock = require('nock');
-let assert = require('chai').assert;
-
-let ConfigStoreClient = require('../lib/csclient');
-let CommsError = require('../lib/errors').CommsError;
+import ConfigStoreClient from '../lib/csclient';
+import {CommsError} from '../lib/errors';
 
 describe('ConfigStore client', function() {
   let client = new ConfigStoreClient('http://localhost:1234/api');
