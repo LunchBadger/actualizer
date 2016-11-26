@@ -3,7 +3,8 @@ import sinon from 'sinon';
 
 import ConfigStoreClient from '../lib/csclient';
 import {Deployer} from '../lib/kube';
-import {reconcileProducers} from '../lib/main';
+import {Actualizer} from '../lib/main';
+import loadGateways from '../lib/deployments/gateway';
 
 describe('Reconciler', function() {
   let configStore = undefined;
@@ -35,7 +36,9 @@ describe('Reconciler', function() {
     }]);
     configStore.getFile.returns(fakeConfig);
 
-    await reconcileProducers(configStore, deployer);
+    let actualizer = new Actualizer(configStore, deployer, [loadGateways]);
+    await actualizer.reconcile();
+
     assert(deployer.updateEnvironment.calledTwice);
   });
 });
