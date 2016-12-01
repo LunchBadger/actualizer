@@ -39,6 +39,7 @@ describe('Reconciler', function() {
     let actualizer = new Actualizer(configStore, deployer, [loadGateways]);
     await actualizer.reconcile();
 
-    assert(deployer.updateEnvironment.calledTwice);
+    // note (includes implicit "dev" environment)
+    assert(deployer.updateEnvironment.calledThrice);
   });
 });
