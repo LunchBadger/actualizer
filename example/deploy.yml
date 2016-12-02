@@ -14,15 +14,15 @@ spec:
     spec:
       containers:
         - name: actualizer
-          image: localhost:31000/actualizer:0.0.1
+          image: 410240865662.dkr.ecr.us-west-2.amazonaws.com/actualizer:0.0.2
           imagePullPolicy: Always
           env:
             - name: DEBUG
               value: actualizer:*
             - name: CONFIGSTORE_URL
-              value: "http://configstore.default:3001/api"
+              value: "http://configstore.default/api"
         - name: kubectl-proxy
-          image: localhost:31000/kubectl:1.3.4
+          image: 410240865662.dkr.ecr.us-west-2.amazonaws.com/kubectl:1.4.6
           imagePullPolicy: Always
           args: [proxy, --port, "8001", --logtostderr]
       nodeSelector:
