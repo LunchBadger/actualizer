@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: actualizer
-          image: 410240865662.dkr.ecr.us-west-2.amazonaws.com/actualizer:0.0.3
+          image: 410240865662.dkr.ecr.us-west-2.amazonaws.com/actualizer:0.0.4
           imagePullPolicy: Always
           env:
             - name: DEBUG
@@ -22,7 +22,7 @@ spec:
             - name: CONFIGSTORE_URL
               value: "http://configstore.default/api"
             - name: LBWS_VERSION
-              value: 0.0.4
+              value: 0.0.5
         - name: kubectl-proxy
           image: 410240865662.dkr.ecr.us-west-2.amazonaws.com/kubectl:1.4.6
           imagePullPolicy: Always
