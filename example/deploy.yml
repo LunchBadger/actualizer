@@ -22,7 +22,7 @@ spec:
             - name: CONFIGSTORE_URL
               value: "http://configstore.default/api"
             - name: LBWS_VERSION
-              value: 0.0.6
+              value: 0.0.7
             - name: SLEEP_TIME
               value: "3000"
         - name: kubectl-proxy
