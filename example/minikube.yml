@@ -22,12 +22,10 @@ spec:
             - name: CONFIGSTORE_URL
               value: "http://configstore.default/api"
             - name: LBWS_VERSION
-              value: 0.0.7
+              value: 0.0.8-alpha
             - name: SLEEP_TIME
               value: "3000"
         - name: kubectl-proxy
           image: 410240865662.dkr.ecr.us-west-2.amazonaws.com/kubectl:1.4.6
           imagePullPolicy: Always
           args: [proxy, --port, "8001", --logtostderr]
-      nodeSelector:
-        lunchbadger.com/node-type: worker
