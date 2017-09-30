@@ -27,6 +27,8 @@ spec:
               value: master
             - name: SLEEP_TIME
               value: "3000"
+            - name: WORKSPACE_API_URL_TEMPLATE
+              value: "http://workspace-${PRODUCER}-${ENV}.customer:81/api"
         - name: kubectl-proxy
           image: 410240865662.dkr.ecr.us-west-2.amazonaws.com/kubectl:1.4.6
           imagePullPolicy: Always
