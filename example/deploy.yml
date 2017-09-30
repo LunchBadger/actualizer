@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: actualizer
-          image: 410240865662.dkr.ecr.us-west-2.amazonaws.com/actualizer:0.0.6-alpha
+          image: 410240865662.dkr.ecr.us-west-2.amazonaws.com/actualizer:0.0.6-alpha.3
           imagePullPolicy: Always
           env:
             - name: DEBUG
