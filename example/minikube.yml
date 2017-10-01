@@ -24,7 +24,7 @@ spec:
             - name: LBWS_VERSION
               value: 0.0.8-alpha
             - name: GATEWAY_VERSION
-              value: master
+              value: hot-reload
             - name: SLEEP_TIME
               value: "3000"
             - name: WORKSPACE_API_URL_TEMPLATE
