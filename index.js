@@ -1,6 +1,6 @@
-import 'trace';
-import 'clarify';
+require('trace');
+require('clarify');
 
-import main from './lib/main';
+const main = require('./lib/main');
 
 main();
