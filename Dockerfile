@@ -10,7 +10,6 @@ RUN npm install
 RUN apk del git
 
 COPY . /usr/src/app
-RUN npm run build
 
 ENV NODE_ENV production
 

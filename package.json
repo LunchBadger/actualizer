@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "DEBUG=actualizer:* node .",
     "pretest": "eslint .",
-    "test": "mocha tests"
+    "test": "mocha tests",
+    "start": "node ./index.js"
   },
   "author": "Roman Lisagor <roman@lunchbadger.com>",
   "license": "UNLICENSED",

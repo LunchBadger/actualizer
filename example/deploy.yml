@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: actualizer
-          image: 410240865662.dkr.ecr.us-west-2.amazonaws.com/actualizer:0.0.6-alpha.5
+          image: 410240865662.dkr.ecr.us-west-2.amazonaws.com/actualizer:fix-memory-leak
           imagePullPolicy: Always
           env:
             - name: DEBUG
@@ -22,11 +22,13 @@ spec:
             - name: CONFIGSTORE_URL
               value: "http://configstore.default/api"
             - name: LBWS_VERSION
-              value: 0.0.7
+              value: iot-demo-debug-3
+            - name: GATEWAY_VERSION
+              value: empty-config
             - name: SLEEP_TIME
               value: "3000"
             - name: WORKSPACE_API_URL_TEMPLATE
-              value: "http://workspace-${PRODUCER}-${ENV}.customer:81/api"
+              value: "http://workspace-$PRODUCER-$ENV.customer:81/api"
         - name: kubectl-proxy
           image: 410240865662.dkr.ecr.us-west-2.amazonaws.com/kubectl:1.4.6
           imagePullPolicy: Always
