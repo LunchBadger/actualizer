@@ -1,17 +1,17 @@
-import nock from 'nock';
-import {assert} from 'chai';
+const nock = require('nock');
+const {assert} = require('chai');
 
-import ConfigStoreClient from '../lib/csclient';
-import {CommsError} from '../lib/errors';
+const ConfigStoreClient = require('../lib/csclient');
+const {CommsError} = require('../lib/errors');
 
-describe('ConfigStore client', function() {
+describe('ConfigStore client', function () {
   let client = new ConfigStoreClient('http://localhost:1234/api');
 
-  afterEach(function() {
+  afterEach(function () {
     nock.cleanAll();
   });
 
-  it('invokes the correct method during getAllProducers()', async function() {
+  it('invokes the correct method during getAllProducers()', async function () {
     let reposApi = nock('http://localhost:1234')
       .get('/api/producers')
       .reply(200, 'hello');
@@ -20,7 +20,7 @@ describe('ConfigStore client', function() {
     assert(reposApi.isDone());
   });
 
-  it('invokes the corrent method during getFile()', async function() {
+  it('invokes the corrent method during getFile()', async function () {
     let fileApi = nock('http://localhost:1234')
       .get('/api/producers/my-producer/envs/my-env/files/my-file')
       .reply(200, 'file-content');
@@ -29,12 +29,12 @@ describe('ConfigStore client', function() {
     assert(fileApi.isDone());
   });
 
-  it('throws error when server cannot be reached', async function() {
+  it('throws error when server cannot be reached', async function () {
     // No nock here.
     assert.isRejected(client.getAllProducers(), CommsError);
   });
 
-  it('returns empty list when receiving an error', async function() {
+  it('returns empty list when receiving an error', async function () {
     nock('http://localhost:1234')
       .get('/api/producers')
       .reply(404, 'Not Found');

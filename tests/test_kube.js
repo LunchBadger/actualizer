@@ -1,22 +1,24 @@
 /* eslint-disable max-len */
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 const assert = chai.assert;
 
-import nock from 'nock';
-import {Deployer, configMapJson} from '../lib/kube';
+const nock = require('nock');
+const {Deployer, configMapJson} = require('../lib/kube');
 
-describe('Kubernetes client', function() {
-  let client = new Deployer();
+describe('Kubernetes client', function () {
+  let client = new Deployer({
+    customerDomain: 'lunchbadger.io'
+  });
 
-  afterEach(function() {
+  afterEach(function () {
     nock.cleanAll();
   });
 
-  describe('upsertDeployment()', function() {
+  describe('upsertDeployment()', function () {
     let fakeDeployment = {
-      getDeploymentJson: function(locator, configMapName) {
+      getDeploymentJson: function (locator, configMapName) {
         return {
           apiVersion: 'extensions/v1beta1',
           kind: 'Deployment',
@@ -33,7 +35,7 @@ describe('Kubernetes client', function() {
                   name: 'FakeApp',
                   image: 'fake-image:latest',
                   ports: [{containerPort: 3000}]
-                }],
+                }]
               }
             }
           },
@@ -43,24 +45,24 @@ describe('Kubernetes client', function() {
           }]
         };
       },
-      getConfigFiles: function() {
+      getConfigFiles: function () {
         return {
           'cofig.json': 'new configuration'
         };
       },
-      getServicePorts: function() {
+      getServicePorts: function () {
         return [];
       },
-      getContainerSpec: function() {
+      getContainerSpec: function () {
         return {};
       },
-      getVHost: function() {
+      getVHost: function () {
         return 'fake-deployment.customer.lunchbadger.com';
       }
     };
 
     it('for new deployments, creates a new ConfigMap and Deployment',
-      async function() {
+      async function () {
         nock('http://localhost:8001')
           .get('/api/v1/namespaces/customer/configmaps')
           .query(true)
@@ -96,7 +98,7 @@ describe('Kubernetes client', function() {
       });
 
     it('for existing deployments, creates a new ConfigMap ' +
-       'and updates the Deployment', async function() {
+       'and updates the Deployment', async function () {
       let locator = {
         app: 'gateway',
         producer: 'foo',
