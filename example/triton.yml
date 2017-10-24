@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: actualizer
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        run: actualizer
+    spec:
+      containers:
+        - name: actualizer
+          image: 410240865662.dkr.ecr.us-west-2.amazonaws.com/actualizer:0.0.6-alpha.5
+          imagePullPolicy: Always
+          env:
+            - name: DEBUG
+              value: actualizer:*
+            - name: CONFIGSTORE_URL
+              value: "http://configstore.default/api"
+            - name: LBWS_VERSION
+              value: 0.0.8-alpha
+            - name: GATEWAY_VERSION
+              value: empty-config
+            - name: SLEEP_TIME
+              value: "3000"
+            - name: WORKSPACE_API_URL_TEMPLATE
+              value: "http://workspace-${PRODUCER}-${ENV}.customer:81/api"
+            - name: CUSTOMER_DOMAIN
+              value: "lunchbadger.io"
+        - name: kubectl-proxy
+          image: 410240865662.dkr.ecr.us-west-2.amazonaws.com/kubectl:1.4.6
+          imagePullPolicy: Always
+          args: [proxy, --port, "8001", --logtostderr]
+
