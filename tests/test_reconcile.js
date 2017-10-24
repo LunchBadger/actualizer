@@ -1,32 +1,32 @@
-import assert from 'assert';
-import sinon from 'sinon';
+const assert = require('assert');
+const sinon = require('sinon');
 
-import ConfigStoreClient from '../lib/csclient';
-import {Deployer} from '../lib/kube';
-import {Actualizer} from '../lib/main';
-import loadGateways from '../lib/deployments/gateway';
+const ConfigStoreClient = require('../lib/csclient');
+const {Deployer} = require('../lib/kube');
+const {Actualizer} = require('../lib/main');
+const loadGateways = require('../lib/deployments/gateway');
 
-describe('Reconciler', function() {
-  let configStore = undefined;
-  let deployer = undefined;
+describe('Reconciler', function () {
+  let configStore;
+  let deployer;
 
   const fakeConfig = JSON.stringify({
     gateways: [{
       id: '1234'
-    }],
+    }]
   });
 
-  beforeEach(function()  {
+  beforeEach(function () {
     configStore = sinon.createStubInstance(ConfigStoreClient);
     deployer = sinon.createStubInstance(Deployer);
   });
 
-  afterEach(function() {
+  afterEach(function () {
     configStore = undefined;
     deployer = undefined;
   });
 
-  it('reconciles each environment', async function() {
+  it('reconciles each environment', async function () {
     configStore.getAllProducers.returns([{
       id: 'test-producer',
       envs: {
