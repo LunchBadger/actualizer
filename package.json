@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "DEBUG=actualizer:* node .",
-    "pretest": "eslint .",
+    "pretest": "eslint --fix . ",
     "test": "mocha tests",
     "start": "node ./index.js"
   },

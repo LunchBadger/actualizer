@@ -36,7 +36,7 @@ describe('Reconciler', function () {
     }]);
     configStore.getFile.returns(fakeConfig);
 
-    let actualizer = new Actualizer(configStore, deployer, [loadGateways]);
+    const actualizer = new Actualizer(configStore, deployer, [loadGateways]);
     await actualizer.reconcile();
 
     // note (includes implicit "dev" environment)
