@@ -8,7 +8,7 @@ const nock = require('nock');
 const {Deployer, configMapJson} = require('../lib/kube');
 
 describe('Kubernetes client', function () {
-  let client = new Deployer({
+  const client = new Deployer({
     customerDomain: 'lunchbadger.io'
   });
 
@@ -17,7 +17,7 @@ describe('Kubernetes client', function () {
   });
 
   describe('upsertDeployment()', function () {
-    let fakeDeployment = {
+    const fakeDeployment = {
       getDeploymentJson: function (locator, configMapName) {
         return {
           apiVersion: 'extensions/v1beta1',
@@ -80,10 +80,10 @@ describe('Kubernetes client', function () {
             items: []
           });
 
-        let createConfigApi = nock('http://localhost:8001')
+        const createConfigApi = nock('http://localhost:8001')
           .post('/api/v1/namespaces/customer/configmaps')
           .reply(200, {});
-        let createDeploymentApi = nock('http://localhost:8001')
+        const createDeploymentApi = nock('http://localhost:8001')
           .post('/apis/extensions/v1beta1/namespaces/customer/deployments')
           .reply(200, {});
 
@@ -99,7 +99,7 @@ describe('Kubernetes client', function () {
 
     it('for existing deployments, creates a new ConfigMap ' +
        'and updates the Deployment', async function () {
-      let locator = {
+      const locator = {
         app: 'gateway',
         producer: 'foo',
         environment: 'bar',
@@ -124,10 +124,10 @@ describe('Kubernetes client', function () {
           items: [fakeDeployment.getDeploymentJson()]
         });
 
-      let createConfigApi = nock('http://localhost:8001')
+      const createConfigApi = nock('http://localhost:8001')
         .post('/api/v1/namespaces/customer/configmaps')
         .reply(200, {});
-      let updateDeploymentApi = nock('http://localhost:8001')
+      const updateDeploymentApi = nock('http://localhost:8001')
         .put('/apis/extensions/v1beta1/namespaces/customer/deployments/' +
              'gateway-foo-bar-2ead01e2-b690-4a33-9c70-c56e6c365924')
         .reply(200, {});
