@@ -7,7 +7,8 @@
     "dev": "DEBUG=actualizer:* node .",
     "pretest": "eslint --fix . ",
     "test": "mocha tests",
-    "start": "node ./index.js"
+    "start": "node ./index.js",
+    "start-sk": "node ./index.js"
   },
   "author": "Roman Lisagor <roman@lunchbadger.com>",
   "license": "UNLICENSED",
