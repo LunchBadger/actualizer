@@ -8,7 +8,7 @@
     "pretest": "eslint --fix . ",
     "test": "mocha tests",
     "start": "node ./index.js",
-    "start-sk": "SLEEP_TIME=100000 DEBUG=actualizer:* GIT_API_URL=http://git-api.local.io CONFIGSTORE_URL=http://api.cluster.local node ./index.js"
+    "start-sk": "SLEEP_TIME=100000 LBWS_VERSION=real-git DEBUG=actualizer:* GIT_API_URL=http://git-api.local.io CONFIGSTORE_URL=http://api.cluster.local node ./index.js"
   },
   "author": "Roman Lisagor <roman@lunchbadger.com>",
   "license": "UNLICENSED",
