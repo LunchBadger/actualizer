@@ -1,16 +1,17 @@
-FROM node:8-alpine
+FROM node:8
 
 ENV NODE_ENV production
 
-RUN apk update && apk add git
 RUN mkdir -p /usr/src/app
 
 WORKDIR /usr/src/app
 
-COPY package.json /usr/src/app/
+COPY package.json package-lock.json /usr/src/app/
 RUN npm install
-RUN apk del git
 
 COPY . /usr/src/app
 
+FROM node:8-alpine
+ENV NODE_ENV production
+COPY --from=0 /usr/src/app .
 CMD [ "npm", "start" ]
