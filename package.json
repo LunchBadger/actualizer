@@ -1,6 +1,6 @@
 {
   "name": "actualizer",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Watches configuration repositories and ensures that deployments match configuration",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,6 @@
     "start": "node ./index.js",
     "start-sk": "SLEEP_TIME=100000 CUSTOMER_DOMAIN='local.io' REDIS_EMULATE=true LBWS_VERSION=real-git DEBUG=actualizer:* GIT_API_URL=http://git-api.local.io CONFIGSTORE_URL=http://api.cluster.local node ./index.js",
     "start-staging": "SLEEP_TIME=100000 GATEWAY_VERSION=metrics CUSTOMER_DOMAIN='staging.lunchbadger.io' LBWS_VERSION=real-git LBSLS_version=files DEBUG=actualizer:* GIT_API_URL=http://localhost:8080 CONFIGSTORE_URL=http://staging-api.lunchbadger.com node ./index.js"
- 
   },
   "author": "Roman Lisagor <roman@lunchbadger.com>",
   "license": "UNLICENSED",
