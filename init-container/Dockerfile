@@ -10,17 +10,18 @@ CMD echo Staritng init container; \
     echo git url: $GIT_HOST;  \
     echo git-api: $GIT_API_HOST; \ 
     echo username: $USERNAME; \
-    echo system key type: $GIT_KEY_TYPE;   \
+    echo system key type: $GIT_KEY_TYPE; \
+    CUSTOMER_NAMESPACE=${CUSTOMER_NAMESPACE:-customer} \
+    echo namespace: $CUSTOMER_NAMESPACE; \
     echo "clear ~/.ssh"; \
     rm -rf ~/.ssh/* ; \
     echo "generate known_host record"; \
     ssh-keyscan -t rsa -H $GIT_HOST >> ~/.ssh/known_hosts;  \
-    [ -s ~/.ssh/known_hosts ] || echo "known_hosts was not generated. It means service is not ready or network issue" && exit 1 ;\ 
+    [ -s ~/.ssh/known_hosts ] || (echo "known_hosts was not generated. It means service is not ready or network issue" && exit 1) ;\ 
     echo "id_rsa generation" ; \
-    cat ~/.ssh/known_hosts && ssh-keygen -f ~/.ssh/id_rsa -t rsa -N ""; \
-    [ -s ~/.ssh/id_rsa ] || echo "id_rsa was not generated. Volume issue? "  && exit 1 ; \
-    echo "register system key" ; \
-    curl -X POST http://$GIT_API_HOST/users/customer/$USERNAME/ssh -d '{"type":"$GIT_KEY_TYPE","publicKey":"'"$(cat ~/.ssh/id_rsa.pub)"'"}'  -H "Content-type: application/json"; \
+    ssh-keygen -f ~/.ssh/id_rsa -t rsa -N ""; \
+    echo "register system key url"  ; \
+    curl -X POST http://$GIT_API_HOST/users/customer/$USERNAME/ssh -v -d '{"type":"'"$GIT_KEY_TYPE"'","publicKey":"'"$(cat ~/.ssh/id_rsa.pub)"'"}'  -H "Content-type: application/json"; \
     exit $? 
 # check curl error code and exit using it (>0 if curl had non 2xx code returned)
 
