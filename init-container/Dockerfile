@@ -13,6 +13,7 @@ CMD echo Staritng init container; \
     echo system key type: $GIT_KEY_TYPE; \
     CUSTOMER_NAMESPACE=${CUSTOMER_NAMESPACE:-customer} \
     echo namespace: $CUSTOMER_NAMESPACE; \
+    echo git repo url:  $GIT_REPO_URL; \
     echo "clear ~/.ssh"; \
     rm -rf ~/.ssh/* ; \
     echo "generate known_host record"; \
@@ -22,11 +23,16 @@ CMD echo Staritng init container; \
     ssh-keygen -f ~/.ssh/id_rsa -t rsa -N ""; \
     echo register system key url:  http://$GIT_API_HOST/users/$CUSTOMER_NAMESPACE/$USERNAME/ssh  ; \
     curl -X POST http://$GIT_API_HOST/users/$CUSTOMER_NAMESPACE/$USERNAME/ssh -v -d '{"type":"'"$GIT_KEY_TYPE"'","publicKey":"'"$(cat ~/.ssh/id_rsa.pub)"'"}'  -H "Content-type: application/json"; \
-    exit $? 
-# check curl error code and exit using it (>0 if curl had non 2xx code returned)
-
-
+    ERROR=$?; \
+    [ $ERROR -eq 0 ] || (echo "registering key failed" && exit 1) ; \
+    mkdir -p /usr/src/app/workspace; \
+    rm -rf /usr/src/app/workspace/* ;\
+    git clone --verbose $GIT_REPO_URL /usr/src/app/workspace; \
+    ls -a /usr/src/app/workspace; \
+    ERROR=$?; \
+    [ $ERROR -eq 0 ] || (echo "git clone failed" && exit 1) ; 
 # $GIT_HOST - gitea url 
 # $GIT_API_HOST git-api host
 # $USERNAME - username
 # $GIT_KEY_TYPE - workspace or sls-api; used to dustinguish system ssh keys from user's
+# $GIT_REPO_URL - url to git clone from
