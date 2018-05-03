@@ -6,7 +6,7 @@ RUN echo http://dl-5.alpinelinux.org/alpine/v3.7/main > /etc/apk/repositories; \
 
 RUN apk update && apk add openssh && apk add curl && apk add git
 
-CMD echo Staritng init container; \
+CMD echo Starting init container; \
     echo git url: $GIT_HOST;  \
     echo git-api: $GIT_API_HOST; \ 
     echo username: $USERNAME; \
@@ -18,7 +18,7 @@ CMD echo Staritng init container; \
     rm -rf ~/.ssh/* ; \
     echo "generate known_host record"; \
     ssh-keyscan -t rsa -H $GIT_HOST >> ~/.ssh/known_hosts;  \
-    [ -s ~/.ssh/known_hosts ] || (echo "known_hosts was not generated. It means service is not ready or network issue" && exit 1) ;\ 
+    [ -s ~/.ssh/known_hosts ] || (echo "known_hosts was not generated. It typically means gitea k8s service is not ready (like DNS cache issue or not created yet) or network partitioning" && exit 1) ;\ 
     echo "id_rsa generation" ; \
     ssh-keygen -f ~/.ssh/id_rsa -t rsa -N ""; \
     echo register system key url:  http://$GIT_API_HOST/users/$CUSTOMER_NAMESPACE/$USERNAME/ssh  ; \
@@ -36,3 +36,4 @@ CMD echo Staritng init container; \
 # $USERNAME - username
 # $GIT_KEY_TYPE - workspace or sls-api; used to dustinguish system ssh keys from user's
 # $GIT_REPO_URL - url to git clone from
+# $CUSTOMER_NAMESPACE - namespace to use, defaults to customer
