@@ -6,9 +6,13 @@ RUN echo http://dl-5.alpinelinux.org/alpine/v3.7/main > /etc/apk/repositories; \
 
 RUN apk update && apk add openssh && apk add curl && apk add git
 
-CMD echo Starting init container; \
+# // TODO move env var to LB_ space to avoid conflict with $USERNAME 
+
+# run in fail on error mode set -e
+CMD set -e; \  
+    echo Starting init container; \
     echo git url: $GIT_HOST;  \
-    echo git-api: $GIT_API_HOST; \ 
+    echo git-api: $GIT_API_HOST; \
     echo username: $USERNAME; \
     echo system key type: $GIT_KEY_TYPE; \
     CUSTOMER_NAMESPACE=${CUSTOMER_NAMESPACE:-customer} \
@@ -23,14 +27,12 @@ CMD echo Starting init container; \
     ssh-keygen -f ~/.ssh/id_rsa -t rsa -N ""; \
     echo register system key url:  http://$GIT_API_HOST/users/$CUSTOMER_NAMESPACE/$USERNAME/ssh  ; \
     curl -X POST http://$GIT_API_HOST/users/$CUSTOMER_NAMESPACE/$USERNAME/ssh -v -d '{"type":"'"$GIT_KEY_TYPE"'","publicKey":"'"$(cat ~/.ssh/id_rsa.pub)"'"}'  -H "Content-type: application/json"; \
-    ERROR=$?; \
-    [ $ERROR -eq 0 ] || (echo "registering key failed" && exit 1) ; \
+    echo "registering key done" ;\
     mkdir -p /usr/src/app/workspace; \
     rm -rf /usr/src/app/workspace/* ;\
     git clone --verbose $GIT_REPO_URL /usr/src/app/workspace; \
     ls -a /usr/src/app/workspace; \
-    ERROR=$?; \
-    [ $ERROR -eq 0 ] || (echo "git clone failed" && exit 1) ; 
+    echo "git clone completed"
 # $GIT_HOST - gitea url 
 # $GIT_API_HOST git-api host
 # $USERNAME - username
