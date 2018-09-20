@@ -1,6 +1,6 @@
 {
   "name": "actualizer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Watches configuration repositories and ensures that deployments match configuration",
   "main": "index.js",
   "scripts": {
