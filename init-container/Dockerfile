@@ -26,7 +26,7 @@ CMD set -e; \
     echo "id_rsa generation" ; \
     ssh-keygen -f ~/.ssh/id_rsa -t rsa -N ""; \
     echo register system key url:  http://$GIT_API_HOST/users/$CUSTOMER_NAMESPACE/$USERNAME/ssh  ; \
-    curl -X POST http://$GIT_API_HOST/users/$CUSTOMER_NAMESPACE/$USERNAME/ssh -v -d '{"type":"'"$GIT_KEY_TYPE"'","publicKey":"'"$(cat ~/.ssh/id_rsa.pub)"'"}'  -H "Content-type: application/json"; \
+    curl -X POST http://$GIT_API_HOST/users/$CUSTOMER_NAMESPACE/$USERNAME/ssh -v -d '{"type":"'"$GIT_KEY_TYPE"'","publicKey":"'"$(cat ~/.ssh/id_rsa.pub)"'"}'  -H "Content-type: application/json" --fail; \
     echo "registering key done" ;\
     mkdir -p /usr/src/app/workspace; \
     rm -rf /usr/src/app/workspace/* ;\
