@@ -56,6 +56,20 @@ TODO: Deploy operations are currently controlled by UI, which is not correct. It
 
 refer to https://github.com/LunchBadger/serverless-api for more details.
 
+# Environment (Future)
+In current implementation every user is working in single environment - `dev`. The intention is to allow multiple env like test/prod etc. Those environments may have different deployment strategies, different env vars etc. 
+
+# Multi project (Future)
+As of now user can have only single project with code contained in dev+functions repos. Eventually this can be extended to allow users to have independent sets of models/functions/gateways under the same user account.
+
+# Multi User (Future)
+By default external calls to Workspace/Project/SLS APIs of another user are not limited. 
+To enable collaboration protection need's to be defined in a way to check if UserA can access projects of UserB
+Initial work based on gitea permission has been done. Please refer to https://github.com/LunchBadger/graphql-api 
+
+# Scaling (Future)
+Actualizer in current architecture is very limited and can handle <100 users. 
+Future refactoring may split this code base as CRD controllers for resources like LB.Function, LB.Gateway, LB.Workspace etc.
 
 
 
