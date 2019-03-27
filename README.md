@@ -102,7 +102,7 @@ Future efforts required to bring that part to production level.
           value: 0.2.0
         - name: GATEWAY_VERSION # EG docker image version
           value: latest
-        - name: SLEEP_TIME
+        - name: SLEEP_TIME # time to wait until next cycle of world refresh
           value: "6000"
         - name: WORKSPACE_API_URL_TEMPLATE  # url to access Workspace pod
           value: http://workspace-$PRODUCER-$ENV.customer:81/api
