@@ -82,7 +82,7 @@ Future efforts required to bring that part to production level.
 # Actualizer pod env vars
 ```yaml
       - env:
-        - name: AUTOGATEWAY_ENABLE
+        - name: AUTOGATEWAY_ENABLE #to disable remove this variable
           value: "true"
         - name: DEBUG_GATEWAY_VERSION
           value: latest
