@@ -23,7 +23,7 @@ Configstore via git-api service makes call to gitea to get list of users and the
 To disable a useer:
 - go to gitea
 - sign in and goto site administration
-- go to customer-<user>
+- go to customer-\<user\>
 - go to dev repo
 - locate lunchbadger.json
 - add `"\disabled\": true`
