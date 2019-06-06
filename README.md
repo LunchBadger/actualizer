@@ -98,8 +98,8 @@ Future efforts required to bring that part to production level.
           value: latest
         - name: GATEWAY_IMAGE
           value: expressgateway/express-gateway
-        - name: GIT_API_URL
-          value: http://git-api.default
+        - name: GIT_API_URL # the http endpoint for the LB git-api service name 
+          value: http://lb-git-api.default
         - name: REDIS_PASSWORD # All EG instances will be connected to in cluster redis database with this pass 
           value: your_redis_password
         - name: DEBUG
