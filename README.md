@@ -1,95 +1,117 @@
 # Actualizer
 
-Core component of LunchBadger platform
+The Actualizer is responsible for making sure that the intended configuration of what is deployed within LunchBadger is actually deployed within Kubernetes as its intended state.
 
-It periodically checks configstore service and workspace pods to recreate pods for each user.
+The Actualizer works hand-in-hand with the Configstore by periodically checking for changes in the configuration metadata and deploying Kubernetes pods on behalf of all Users.
 
-## Users (Producers)
-Part 1 is to get list of users that needs to be recreated in the k8s cluster. 
+## Producers
+Users of the LunchBadger system are referred to as Producers internally.
 
-Actualizer refers those users as Producers
+## Producer and Gitea User
+All LunchBadger Producers have a corresponding Gitea user.  Gitea is used as the git based server that contains all the configuration metadata and the code repositories for each LunchBadger User.
 
-## List of users
-Every gitea user that begins with `customer-` is considered as LunchBadger producer.
+The naming convention of the Gitea user is `customer-<producername>`
 
-*customer-test* will become *test* producer.
+For example:
+A LunchBadger User named `al` will have be the `al` producer registered within the Configstore  and have a corresponding Gitea user known as `customer-al`.
 
-Actualizer gets the array of users by requesting configstore service 
-locally `http://localhost:3002/producers` or in cluster as `http://configstore.default/producers` 
+## User Repositories.
+The User's project code is stored within git repositories hosted by Gitea.
 
+In order to function properly each User must have 2 repositories within Gitea:
+- `dev` - the LoopBack project with models and connectors
+- `functions` - all Kubeless serverless functions
 
-Configstore via git-api service makes call to gitea to get list of users and their repo.
+Important Note: The `dev` repo also contains the `lunchbadger.json` file which holds the User's current project and UI state.
 
-To disable a useer:
-- go to gitea
-- sign in and goto site administration
-- go to customer-\<user\>
-- go to dev repo
-- locate lunchbadger.json
-- add `"\disabled\": true`
-- workspace pod and gateway should be removed
-- clean up function deployments manually
+# Actualizer Operational Flow
+The Actualizer queries the Configstore for a list of all Producers.
 
-## User repos.
-In order to function properly each user must have 2 repos: `dev` and `functions`
+Actualizer gets the array of Producers through the Configstore API endpoint for producers:
+ - locally `http://localhost:3002/producers`
+ - in the Kubernetes cluster as `http://configstore.default/producers`
 
-the `dev` repo is used to store loopback project and lunchbadger.json file that represents state of environment. 
-the `functions` repo is to store code for kubeless functions.
+When the Configstore receives this request.  It makes a service call via the `git-api` service to Gitea.  The `git-api` service is an API wrapper on top of Gitea's API that makes batch API calls to Gitea to streamline operations.
 
-## Environment for user
-If both repos are present actualizer creates 2 pods: `workspace` and `sls-api` for each user.
+Gitea returns a list of Gitea users and their corresponding repositories.
 
-`workspace` pod during init phase via init container does `git clone dev` repo. 
-Once cloned, if repo is empty it is initialized with default loopback 3 project 
+## User Environment Initialization
+If both repos are present the Actualizer creates 2 pods for each user:
+- `workspace`
+- `sls-api`
 
-`sls-api` pod during init phase does `git clone functions` repo
+The `workspace` pod git clones the `dev` repo during iinitialization phase via an init container.
 
-Once those pods are running EG (Express-Gateway) pods can be created. See below. 
+Once cloned, if repo is empty it is initialized with a starter [LoopBack 3][loopback-3] project
 
-## Workspace pod API.
-Once `workspace` pod is running it exposes `Workspace API` based on this project `https://github.com/strongloop/loopback-workspace`
-Also it has `Project API` that provide operations over lunchbadger.json file 
-See https://github.com/LunchBadger/lunchbadger for details. 
+The `sls-api` pod clones the `functions` repo during initialization phase.
 
-The most important role of Project API is to provide information about user created Gateways
-Workspace API is used to retrieve Information about Loopback models
+Once these pods are running, other pods like the Express Gateway(EG) pods can be created.
 
-Actualizer uses that data to create and configure Express-Gateway pods. 
+## Workspace Pod
+Once `workspace` pod is running it exposes `Workspace API` based on the [LoopBack workspace API][loopback-workspace].
+The Loopback workspace API is used to manipulate the LoopBack project's models and datasources.
 
-Please refer to https://github.com/LunchBadger/actualizer/tree/master/lib/deployments for exact logic and resources that get created.
+The workspace pod also hosts the `LunchBadger Project API` that provide operations over `lunchbadger.json` file.
 
-## sls-api pod
-This pod exposes an API wrapper around https://github.com/serverless/serverless framework with kubeless plugin. 
-It allows Create/Modify/Deploy etc. operations over kubeless functions
+See the [lunchbadger api][lunchbadger-api].
 
-TODO: Deploy operations are currently controlled by UI, which is not correct. It needs to be refactored to put into actualizer or in some k8s CRD controller
+One of the most important functions of the Project API is to provide information about User created Gateways
 
-refer to https://github.com/LunchBadger/serverless-api for more details.
+Please refer to the [deployments][deployments-folder]for exact logic and resources that get created.
 
-# Environment (Future)
-In current implementation every user is working in single environment - `dev`. The intention is to allow multiple env like test/prod etc. Those environments may have different deployment strategies, different env vars etc. 
+## SLS-API Pod
+The `sls-api` pod exposes an API wrapper around [Serverless framework][serverless-framework] that utilizes the Kubeless plugin to deploy serverless functions as pods.
 
-# Multi project (Future)
-As of now user can have only single project with code contained in dev+functions repos. Eventually this can be extended to allow users to have independent sets of models/functions/gateways under the same user account.
+TODO Note: Deploy operations are currently controlled by UI, which is not optimal. It needs to be refactored to put into the Actualizer or a Kubernetes CRD controller
 
-# Multi User (Future)
-By default external calls to Workspace/Project/SLS APIs of another user are not limited. 
-To enable collaboration protection need's to be defined in a way to check if UserA can access projects of UserB
-Initial work based on gitea permission has been done. Please refer to https://github.com/LunchBadger/graphql-api 
+For more information refer to the [serverless-api repo][sls-api-repo] for more details.
 
-# Scaling (Future)
-Actualizer in current architecture is very limited and can handle <100 users. 
+# Future Roadmap Items
+
+## Multi Environment (Future)
+In the current implementation every User is bound to a single environment - `dev`. The intention is to allow multiple environments like test, stage, prod etc. Those environments may have different deployment strategies, different env vars etc.
+
+## Multi Project (Future)
+As of now user can have only single project with code contained in the  `dev` and `functions` repos. Eventually this can be extended to allow users to have independent sets of models/functions/gateways under the same User account.
+
+## Multi User (Future)
+By default external calls to Workspace/Project/SLS APIs originating from another User utilizing their own identity is not possible.
+
+To enable full collaboration, security needs to be defined in a way to check if User A can access projects of User B.
+
+Gitea level access and collaboration is possible through a series of manual steps. If a user is manually added as a collaborator on the repository, the user can push changes via git as well.
+Initial work based on gitea permission has been done. Please refer to [graphql repo][graphql-repo] for more information.
+
+The LunchBadger Canvas supports colloboration and multiple Users, but each action performed through API calls is executed as the owner of the project.
+
+## Scaling (Future)
+Actualizer in current architecture is very limited and can handle <100 users.
 Future refactoring may split this code base as CRD controllers for resources like LB.Function, LB.Gateway, LB.Workspace etc.
 
-# Deployment
-Cluster deployment is 90% automated. Refer to https://github.com/LunchBadger/helm-charts 
+# Other Notes
 
-# Auto Gateway (PoC)
-The feature allows automatic EG deployemnt and configuration. 
+## Auto Gateway (PoC)
+The auto gateway feature enables an automated configuration and deployment of Express Gateway based on the models defined on the Canvas.
+
 All public models are automatically connected to Autogenerated gateway. Access to this gateway is protected by key-auth.
 Future efforts required to bring that part to production level.
 
-# Actualizer pod env vars
+## Disabling Producers
+When you want to disable a LunchBadger user, the following procedure can be done.
+
+To disable a useer:
+- kubectl proxy to the Gitea pod
+- load the Gitea UI interface
+- sign in and goto site administration
+- find the Gitea user that represents the Producer - `customer-<user>`
+- find the user's `dev` repo
+- locate the configuration metadata file - `lunchbadger.json`
+- add `"\disabled\": true` anywhere within the JSON string
+- workspace and gateway pods should be removed by the actualizer
+- other Kubernetes artifacts will need to be removed related to functions: deployments (and pods), services, and ingress
+
+# Actualizer pod environment variables
 ```yaml
       - env:
         - name: AUTOGATEWAY_ENABLE #to disable remove this variable
@@ -100,7 +122,7 @@ Future efforts required to bring that part to production level.
           value: expressgateway/express-gateway
         - name: GIT_API_URL
           value: http://git-api.default
-        - name: REDIS_PASSWORD # All EG instances will be connected to in cluster redis database with this pass 
+        - name: REDIS_PASSWORD # All EG instances will be connected to in cluster redis database with this pass
           value: your_redis_password
         - name: DEBUG
           value: actualizer:*
@@ -125,7 +147,13 @@ Future efforts required to bring that part to production level.
           value: sk,zu,ko
         - name: LBWS_DEBUG_VERSION
           value: 0.2.9
-        - name: SLS_API_URL_TEMPLATE # url to access sls-api 
+        - name: SLS_API_URL_TEMPLATE # url to access sls-api
           value: http://sls-api-$PRODUCER-$ENV.customer
 ```
-
+[loopback-3]: https://loopback.io/doc/en/lb3/
+[graphql-repo]: https://github.com/LunchBadger/graphql-api
+[loopback-workspace]: https://github.com/strongloop/loopback-workspace
+[lunchbadger-api]: https://github.com/LunchBadger/lunchbadger
+[deployments-folder]: https://github.com/strongloop/loopback-workspace
+[serverless-framework]: https://github.com/serverless/serverless
+[serverless-api]: https://github.com/LunchBadger/serverless-api
