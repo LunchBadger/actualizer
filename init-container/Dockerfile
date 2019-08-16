@@ -1,8 +1,8 @@
 FROM alpine
 # using mirror for packages. main repo is not always available
 # TODO: rm if main become stable
-RUN echo http://dl-5.alpinelinux.org/alpine/v3.7/main > /etc/apk/repositories; \
-    echo http://dl-5.alpinelinux.org/alpine/v3.7/community >> /etc/apk/repositories
+RUN echo http://dl-5.alpinelinux.org/alpine/v3.8/main > /etc/apk/repositories; \
+    echo http://dl-5.alpinelinux.org/alpine/v3.8/community >> /etc/apk/repositories
 
 RUN apk update && apk add openssh && apk add curl && apk add git
 
