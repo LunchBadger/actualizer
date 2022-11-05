@@ -23,7 +23,7 @@
     "eslint-plugin-node": "4.2.2",
     "eslint-plugin-promise": "3.5.0",
     "eslint-plugin-standard": "3.0.1",
-    "mocha": "^2.5.3",
+    "mocha": "^10.1.0",
     "nock": "^8.0.0",
     "sinon": "^1.17.4"
   },
